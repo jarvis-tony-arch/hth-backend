@@ -1,6 +1,7 @@
 import re
 import time
 from langdetect import detect, LangDetectException
+from deep_translator import GoogleTranslator
 
 SUPPORTED_LANGUAGES = {
     'en': 'English',
@@ -67,48 +68,28 @@ def translate_to_english(text: str, source_lang: str) -> str:
         # Hinglish handled by nlp_service normalize_hinglish
         # Return as-is here — NLP will normalize it
         return text
+    
     try:
-        from googletrans import Translator
-        translator = Translator()
-        time.sleep(1)
-        result = translator.translate(
-            text, src=source_lang, dest='en'
-        )
-        return result.text if result and result.text else text
+        time.sleep(1) # Small delay to avoid rate limits
+        translated = GoogleTranslator(source=source_lang, target='en').translate(text)
+        return translated if translated else text
     except Exception as e:
-        print(f"googletrans error: {e}")
-        try:
-            from deep_translator import GoogleTranslator
-            time.sleep(2)
-            return GoogleTranslator(
-                source=source_lang, target='en'
-            ).translate(text) or text
-        except Exception as e2:
-            print(f"deep_translator error: {e2}")
-            return text
+        print(f"deep_translator error (to english): {e}")
+        return text
 
 
 def translate_from_english(text: str, target_lang: str) -> str:
     """Translate English text to target language."""
     if target_lang in ('en', 'hinglish') or not text:
         return text
+        
     try:
-        from googletrans import Translator
-        translator = Translator()
         time.sleep(0.5)
-        result = translator.translate(
-            text, src='en', dest=target_lang
-        )
-        return result.text if result and result.text else text
-    except Exception:
-        try:
-            from deep_translator import GoogleTranslator
-            time.sleep(1)
-            return GoogleTranslator(
-                source='en', target=target_lang
-            ).translate(text) or text
-        except Exception:
-            return text
+        translated = GoogleTranslator(source='en', target=target_lang).translate(text)
+        return translated if translated else text
+    except Exception as e:
+        print(f"deep_translator error (from english): {e}")
+        return text
 
 
 def translate_list(items: list, target_lang: str) -> list:
