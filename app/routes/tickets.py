@@ -7,7 +7,26 @@ router = APIRouter()
 
 @router.post("/tickets")
 def create_ticket(ticket: schemas.TicketCreate, db: Session = Depends(get_db)):
-    db_ticket = models.TicketDB(**ticket.dict())
+    # Check if ticket already exists to prevent unique constraint errors
+    existing = db.query(models.TicketDB).filter(models.TicketDB.ticket_id == ticket.ticket_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Ticket ID already exists")
+
+    # Safely convert lists to strings
+    issues_str = ",".join(ticket.issues) if ticket.issues else ""
+    depts_str = ",".join(ticket.departments) if ticket.departments else ""
+    
+    db_ticket = models.TicketDB(
+        ticket_id=ticket.ticket_id,
+        raw_query=ticket.raw_query,
+        ai_title=ticket.ai_title,
+        ai_summary=ticket.ai_summary,
+        urgency=ticket.urgency,
+        sentiment=ticket.sentiment,
+        confidence=ticket.confidence,
+        issues=issues_str,
+        departments=depts_str
+    )
     db.add(db_ticket)
     db.commit()
     db.refresh(db_ticket)
