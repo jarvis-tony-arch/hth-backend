@@ -16,8 +16,8 @@ async def analyze_query(request: AnalyzeRequest):
     original_text = request.text
 
     # Step 1 — Detect language
-    detected_lang = request.language or detect_language(original_text)
-
+    # Use getattr to safely check for 'language'. If it's not there, use detect_language.
+    detected_lang = getattr(request, 'language', None) or detect_language(original_text) 
     # Step 2 — Translate to English for NLP
     english_text = translate_to_english(original_text, detected_lang)
 
