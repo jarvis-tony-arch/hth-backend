@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.models.schemas import AnalyzeRequest, AnalyzeResponse
+from app.schemas import AnalyzeRequest, AnalyzeResponse
 from app.services.nlp_service import analyze
 from app.services.language_service import (
     detect_language,
